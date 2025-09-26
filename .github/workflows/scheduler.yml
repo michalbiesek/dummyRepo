@@ -1,0 +1,25 @@
+name: Fan-out scheduler (main)
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes, UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: write            # REQUIRED to dispatch other workflows
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    env:
+      BRANCHES: '["dev","main"]'      # <-- list your target branches here
+      WORKFLOW_FILE: "branch-workflow.yml"  # the workflow file to run on each branch
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # gh uses this automatically
+    steps:
+      - name: Fan out to branches via GitHub CLI
+        run: |
+          for b in $(echo "$BRANCHES" | jq -r '.[]'); do
+            echo "Dispatching $WORKFLOW_FILE on branch: $b"
+            gh workflow run "$WORKFLOW_FILE" -r "$b" --json url | jq -r '.url'
+          done
