@@ -7,19 +7,22 @@ on:
 
 permissions:
   contents: read
-  actions: write            # REQUIRED to dispatch other workflows
+  actions: write
 
 jobs:
   dispatch:
     runs-on: ubuntu-latest
     env:
-      BRANCHES: '["dev","main"]'      # <-- list your target branches here
-      WORKFLOW_FILE: "branch-workflow.yml"  # the workflow file to run on each branch
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # gh uses this automatically
+      BRANCHES: '["dev","main"]'
+      WORKFLOW_FILE: "branch-workflow.yml"
+      GH_TOKEN: ${{ github.token }}  # gh will use this
     steps:
       - name: Fan out to branches via GitHub CLI
         run: |
           for b in $(echo "$BRANCHES" | jq -r '.[]'); do
             echo "Dispatching $WORKFLOW_FILE on branch: $b"
-            gh workflow run "$WORKFLOW_FILE" -r "$b" --json url | jq -r '.url'
+            gh workflow run "$WORKFLOW_FILE" \
+              --ref "$b" \
+              --repo "$GITHUB_REPOSITORY" \
+              --json url | jq -r '.url'
           done
