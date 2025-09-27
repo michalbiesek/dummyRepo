@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BRANCHES: '["dev","main"]'
-      WORKFLOW_FILE: "branch-workflow.yml"
+      WORKFLOW_FILE: "branch_workflow.yml"
       GH_TOKEN: ${{ github.token }}  # gh will use this
     steps:
       - name: Fan out to branches via GitHub CLI
